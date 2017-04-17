@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/signmaker.css">
+
+    <title>Sign Maker 3.0</title>
+
+    <style type="text/css">
+
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6 col-sm-offset-3">
+                <div id="contents" class="account-wall">
+                    <div class="btn-group btn-top">
+                        <button id="openglobals" class="btn btn-sm btn-beg"><i class="glyphicon glyphicon-pencil"></i>&nbsp;&nbsp;Modifier les valeurs générales</button>
+                    </div>
+                    <img class="profile-img" src="img/signmakerlogo.png" alt="">
+                    <div id="formerror" class="alert alert-danger" role="alert" style="display: none;"></div>
+                    <form id="signmakerform" class="form-signmaker" action="signmaker/generate" method="post">
+                    <label for="sku1">UGS du premier ordinateur :</label>
+                    <div class="input-group sign-group">
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-barcode"></span></span>
+                        <input type="text" class="form-control" id="sku1" name="sku1" onkeypress="return numeric_only(this,event);" placeholder="UGS premier ordinateur" required autofocus>
+                        <span class="input-group-btn">
+                            <button id="skusearch1" class="btn btn-default" data-loading-text="<span class='glyphicon glyphicon-time'></span>" type="button"><span class="glyphicon glyphicon-search"></span></button>
+                        </span>
+                    </div>
+                    <div id="skuerror1" class="alert alert-danger" role="alert" style="display: none;"></div>
+                    <label for="dsc1">Description du premier ordinateur :</label>
+                    <div class="input-group sign-group">
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-tag"></span></span>
+                        <input type="text" class="form-control" id="dsc1" name="dsc1" placeholder="Description premier ordinateur" required>
+                    </div>
+                    <label for="prc1">Prix du premier ordinateur :</label>
+                    <div class="input-group sign-group">
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-usd"></span></span>
+                        <input type="text" class="form-control" id="prc1" name="prc1" onkeypress="return numeric_only(this,event);" placeholder="Prix premier ordinateur" required>
+                    </div>
+                    <hr>
+                    <label for="sku2">UGS du deuxième ordinateur :</label>
+                    <div class="input-group sign-group">
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-barcode"></span></span>
+                        <input type="text" class="form-control" id="sku2" name="sku2" onkeypress="return numeric_only(this,event);" placeholder="UGS deuxième ordinateur" required>
+                        <span class="input-group-btn">
+                            <button id="skusearch2" class="btn btn-default" data-loading-text="<span class='glyphicon glyphicon-time'></span>" type="button"><span class="glyphicon glyphicon-search"></span></button>
+                        </span>
+                    </div>
+                    <div id="skuerror2" class="alert alert-danger" role="alert" style="display: none;"></div>
+                    <label for="dsc2">Description du deuxième ordinateur :</label>
+                    <div class="input-group sign-group">
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-tag"></span></span>
+                        <input type="text" class="form-control" id="dsc2" name="dsc2" placeholder="Description deuxième ordinateur" required>
+                    </div>
+                    <label for="prc2">Prix du deuxième ordinateur :</label>
+                    <div class="input-group sign-group">
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-usd"></span></span>
+                        <input type="text" class="form-control" id="prc2" name="prc2" onkeypress="return numeric_only(this,event);" placeholder="Prix deuxième ordinateur" required>
+                    </div>
+                    <button id="generatebtn" class="btn btn-lg btn-beg btn-block" data-loading-text="<img src='/assets/img/signload.gif\'>  Chargement..." type="submit"><span class="glyphicon glyphicon-ok"></span>  Générer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        function numeric_only(text, e) {
+            var unicode = e.charCode ? e.charCode : e.keyCode;
+            if (unicode == 8 || unicode == 9 || (unicode >= 48 && unicode <= 57) || unicode == 46 || unicode == 44) {
+                //Replace any commas with periods
+                text.value = text.value.replace(/,/g, ".");
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        function validateform(f) {
+            var err = $("#globalserror");
+            err.hide();
+            var has_empty = false;
+            $(f).find('input[type!="hidden"]').each(function () {
+                if (!$(this).val()) { has_empty = true; return false; }
+            });
+            if (has_empty) {
+                err.html('<b>Erreur</b>: Vous devez remplir <b>TOUS</b> les champs!');
+                err.show();
+                return false;
+            } else {
+                return true;
+            }
+        }
+        $(document).ready(function () {
+            $("#signmakerform").submit(function (e) {
+                var btn = $("#generatebtn");
+                btn.button("loading");
+                var err = $("#formerror");
+                err.hide();
+                $.fileDownload($(this).prop('action'), {
+                    httpMethod: "POST",
+                    data: $(this).serialize(),
+                    successCallback: function (url) {
+                         btn.button("reset");
+                         $("#signmakerform input").val("");
+                         $("#sku1").focus();
+                    },
+                    failCallback: function (responseHtml, url) {
+                         btn.button("reset");
+                         err.html('Le téléchargement a échoué. Merci de réessayer.');
+                         err.show();
+                    }
+                });
+                e.preventDefault();
+            });
+            $("#openglobals").click(function (e) {
+                $("#globaloptions").modal("show");
+                e.preventDefault();
+            });
+            $("#globaloptions").on("shown.bs.modal", function (e) {
+                $("#p250").focus();
+            });
+            $("#saveglobals").click(function (e) {
+                var frm = $("#globalsform");
+                if (validateform(frm)) {
+                    var postData = frm.serializeArray();
+                    var formURL = frm.attr("action");
+                    var err = $("#globalserror");
+                    var btn = $("#saveglobals");
+                    err.hide();
+                    btn.button("loading");
+                    $.ajax(
+                    {
+                        url : formURL,
+                        type: "POST",
+                        data : postData,
+                        success:function(data, textStatus, jqXHR)
+                        {
+                            btn.button("reset");
+                            $("#globaloptions").modal("hide");
+                        },
+                        error: function(jqXHR, textStatus, errorThrown)
+                        {
+                            btn.button("reset");
+                            err.html("Une erreur s'est produite durant la sauvegarde. Vérifiez les valeurs entrées et réessayez.");
+                            err.show();
+                        }
+                    });
+                }
+                e.preventDefault();
+            });
+            $("#skusearch1").click(function (e) {
+                var err = $("#skuerror1");
+                err.hide();
+                var sku = $("#sku1").val();
+                if (sku == "") {
+                    err.html("Veuillez spécifier une UGS!");
+                    err.show();
+                    return false;
+                }
+                var btn = $("#skusearch1");
+                var postData = {'sku': sku};
+                btn.button("loading");
+                $.ajax(
+                {
+                    url : 'signmaker/checksku',
+                    type: "POST",
+                    data : postData,
+                    success:function(data, textStatus, jqXHR)
+                    {
+                        btn.button("reset");
+                        $("#dsc1").val(data.desc);
+                        $("#prc1").val(data.price);
+                    },
+                    error: function(jqXHR, textStatus, errorThrown)
+                    {
+                        btn.button("reset");
+                        err.html("UGS non trouvée sur Staples.ca!");
+                        err.show();
+                    }
+                });
+                e.preventDefault();
+            });
+            $("#skusearch2").click(function (e) {
+                var err = $("#skuerror2");
+                err.hide();
+                var sku = $("#sku2").val();
+                if (sku == "") {
+                    err.html("Veuillez spécifier une UGS!");
+                    err.show();
+                    return false;
+                }
+                var btn = $("#skusearch2");
+                var postData = {'sku': sku};
+                btn.button("loading");
+                $.ajax(
+                {
+                    url : 'signmaker/checksku',
+                    type: "POST",
+                    data : postData,
+                    success:function(data, textStatus, jqXHR)
+                    {
+                        btn.button("reset");
+                        $("#dsc2").val(data.desc);
+                        $("#prc2").val(data.price);
+                    },
+                    error: function(jqXHR, textStatus, errorThrown)
+                    {
+                        btn.button("reset");
+                        err.html("UGS non trouvée sur Staples.ca!");
+                        err.show();
+                    }
+                });
+                e.preventDefault();
+            });
+        });
+        $(window).load(function () {
+            $("#globaloptions").modal("show");
+        });
+    </script>
+</body>
+</html>
