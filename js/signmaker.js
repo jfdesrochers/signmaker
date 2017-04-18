@@ -136,4 +136,63 @@ smGlobals.view = function () {
     ])))
 }
 
-m.mount(document.getElementById('smmodal'), smGlobals)
+smMain = {}
+
+smMain.view = function () {
+    return m(".row", m(".col-sm-6.col-sm-offset-3", m(".account-wall[id='contents']", [
+        m(".btn-group.btn-top", m("button.btn.btn-sm.btn-beg[id='openglobals']", {onclick: function () {
+            m.mount(document.getElementById('smmodal'), ModalWindow(smGlobals, {done: function () {
+                m.mount(document.getElementById('smmodal'), null)
+            }}))
+        }},
+        [
+            m("i.glyphicon.glyphicon-pencil"),
+            m.trust("&nbsp;"),
+            m.trust("&nbsp;"),
+            "Modifier les valeurs générales"
+        ])),
+        m("img.profile-img[alt=''][src='img/signmakerlogo.png']"),
+        m(".alert.alert-danger[id='formerror'][role='alert']", {style: {"display": "none"}}),
+        m("form.form-signmaker[action='signmaker/generate'][id='signmakerform'][method='post']", [
+            m("label[for='sku1']", "UGS du premier ordinateur :"),
+            m(".input-group.sign-group", [
+                m("span.input-group-addon", m("span.glyphicon.glyphicon-barcode")),
+                m("input.form-control[autofocus=''][id='sku1'][name='sku1'][onkeypress='return numeric_only(this,event);'][placeholder='UGS premier ordinateur'][required=''][type='text']"),
+            ]),
+            m(".alert.alert-danger[id='skuerror1'][role='alert']", {style: {"display": "none"}}),
+            m("label[for='dsc1']", "Description du premier ordinateur :"),
+            m(".input-group.sign-group", [
+                m("span.input-group-addon", m("span.glyphicon.glyphicon-tag")),
+                m("input.form-control[id='dsc1'][name='dsc1'][placeholder='Description premier ordinateur'][required=''][type='text']")
+            ]),
+            m("label[for='prc1']", "Prix du premier ordinateur :"),
+            m(".input-group.sign-group", [
+                m("span.input-group-addon", m("span.glyphicon.glyphicon-usd")),
+                m("input.form-control[id='prc1'][name='prc1'][onkeypress='return numeric_only(this,event);'][placeholder='Prix premier ordinateur'][required=''][type='text']")
+            ]),
+            m("hr"),
+            m("label[for='sku2']", "UGS du deuxième ordinateur :"),
+            m(".input-group.sign-group", [
+                m("span.input-group-addon", m("span.glyphicon.glyphicon-barcode")),
+                m("input.form-control[id='sku2'][name='sku2'][onkeypress='return numeric_only(this,event);'][placeholder='UGS deuxième ordinateur'][required=''][type='text']"),
+            ]),
+            m(".alert.alert-danger[id='skuerror2'][role='alert']", {style: {"display": "none"}}),
+            m("label[for='dsc2']", "Description du deuxième ordinateur :"),
+            m(".input-group.sign-group", [
+                m("span.input-group-addon", m("span.glyphicon.glyphicon-tag")),
+                m("input.form-control[id='dsc2'][name='dsc2'][placeholder='Description deuxième ordinateur'][required=''][type='text']")
+            ]),
+            m("label[for='prc2']", "Prix du deuxième ordinateur :"),
+            m(".input-group.sign-group", [
+                m("span.input-group-addon", m("span.glyphicon.glyphicon-usd")),
+                m("input.form-control[id='prc2'][name='prc2'][onkeypress='return numeric_only(this,event);'][placeholder='Prix deuxième ordinateur'][required=''][type='text']")
+            ]),
+            m("button.btn.btn-lg.btn-beg.btn-block[data-loading-text='<img src=\'/assets/img/signload.gif\\'> Chargement...'][id='generatebtn'][type='submit']", [
+                m("span.glyphicon.glyphicon-ok"),
+                "  Générer"
+            ])
+        ])
+    ])))
+}
+
+m.mount(document.getElementById('smcontents'), smMain)

@@ -1,10 +1,6 @@
 @font-face {
     font-family: 'Open Sans';
-    src: url('OpenSans-Regular-webfont.eot');
-    src: url('OpenSans-Regular-webfont.eot?#iefix') format('embedded-opentype'),
-         url('OpenSans-Regular-webfont.woff') format('woff'),
-         url('OpenSans-Regular-webfont.ttf') format('truetype'),
-         url('OpenSans-Regular-webfont.svg#open_sansregular') format('svg');
+    src: url('fonts/OpenSans-Regular-webfont.svg#open_sansregular') format('svg');
     font-weight: normal;
     font-style: normal;
 
@@ -12,11 +8,7 @@
 
 @font-face {
     font-family: 'Open Sans Light';
-    src: url('OpenSans-Light-webfont.eot');
-    src: url('OpenSans-Light-webfont.eot?#iefix') format('embedded-opentype'),
-         url('OpenSans-Light-webfont.woff') format('woff'),
-         url('OpenSans-Light-webfont.ttf') format('truetype'),
-         url('OpenSans-Light-webfont.svg#open_sanslight') format('svg');
+    src: url('fonts/OpenSans-Light-webfont.svg#open_sanslight') format('svg');
     font-weight: normal;
     font-style: normal;
 
@@ -125,6 +117,7 @@ h2 {
   margin-top: 0;
   border-top-left-radius: 0;
   border-bottom-right-radius: 0;
+  border: none;
 }
 .modal .modal-footer {
   border-top: none;
