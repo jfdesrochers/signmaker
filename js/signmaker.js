@@ -138,13 +138,34 @@ smGlobals.view = function () {
 
 smMain = {}
 
-smMain.view = function () {
-    return m(".row", m(".col-sm-6.col-sm-offset-3", m(".account-wall[id='contents']", [
-        m(".btn-group.btn-top", m("button.btn.btn-sm.btn-beg[id='openglobals']", {onclick: function () {
-            m.mount(document.getElementById('smmodal'), ModalWindow(smGlobals, {done: function () {
+smMain.oninit = function () {
+    var self = this
+
+    self.openModal = function () {
+        m.mount(document.getElementById('smmodal'), ModalWindow(smGlobals, {
+            done: function (gValues) {
                 m.mount(document.getElementById('smmodal'), null)
-            }}))
-        }},
+                if (gValues) {
+                    localStorage.setItem('globalValues', JSON.stringify(gValues))
+                    self.globalValues = gValues
+                }
+            }
+        }))
+    }
+
+    var savedGlobals = localStorage.getItem('globalValues')
+    if (savedGlobals) {
+        self.globalValues = JSON.parse(savedGlobals)
+    } else {
+        self.globalValues = null
+        self.openModal()
+    }
+}
+
+smMain.view = function () {
+    var self = this
+    return m(".row", m(".col-sm-6.col-sm-offset-3", m(".account-wall[id='contents']", [
+        m(".btn-group.btn-top", m("button.btn.btn-sm.btn-beg[id='openglobals']", {onclick: self.openModal},
         [
             m("i.glyphicon.glyphicon-pencil"),
             m.trust("&nbsp;"),
