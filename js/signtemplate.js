@@ -1,4 +1,27 @@
+/**
+ * Returns a new object with all the provided keys initialized with defaultValue.
+ * @param {array} keys Array of keys to initialize the object with.
+ * @param {*} defaultValue Default value for all the keys.
+ */
+function initObject(keys, defaultValue) {
+    var obj = {}
+    for (var i=0; i<keys.length; i++) {
+        obj[keys[i]] = defaultValue
+    }
+    return obj
+}
+
 var SignTemplate = {}
+
+SignTemplate.oninit = function () {
+    try {
+        this.signData = JSON.parse(decodeURIComponent(location.hash.slice(4)));
+    } catch (e) {
+        console.error(e);
+        this.signData = initObject(['c1', 'c2', 'tx1', 'tx2', 'pf1', 'pf2', 'amo', 'ad1', 'ad2', 'p1', 'p2', 'sk1', 'sk2', 'ds1', 'ds2'], '');
+    }
+    console.log(this.signData)
+}
 
 SignTemplate.view = function () {
     return m("svg[height='765'][id='svg2883'][version='1.0'][width='990'][xmlns='http://www.w3.org/2000/svg'][xmlns:cc='http://creativecommons.org/ns#'][xmlns:dc='http://purl.org/dc/elements/1.1/'][xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'][xmlns:svg='http://www.w3.org/2000/svg'][xmlns:xlink='http://www.w3.org/1999/xlink']",
@@ -178,13 +201,13 @@ SignTemplate.view = function () {
                                 "Prix taxes incluses:"
                             ),
                             m("tspan[id='tspan8598'][x='485.79755'][y='264.51724']", {style: {"font-size": "14px", "font-style": "normal", "font-variant": "normal", "font-weight": "normal", "font-stretch": "normal", "text-align": "end", "line-height": "100%", "writing-mode": "lr-tb", "text-anchor": "end", "fill": "#000000", "fill-opacity": "1", "font-family": "Open Sans", "-inkscape-font-specification": "Open Sans"}}, 
-                                "${tx1}"
+                                this.signData['tx1']
                             ),
                             m("tspan[id='tspan9889'][x='485.79755'][y='278.51724']", {style: {"font-size": "14px", "font-style": "normal", "font-variant": "normal", "font-weight": "normal", "font-stretch": "normal", "text-align": "end", "line-height": "100%", "writing-mode": "lr-tb", "text-anchor": "end", "fill": "#000000", "fill-opacity": "1", "font-family": "Open Sans", "-inkscape-font-specification": "Open Sans"}}, 
                                 "Financement sans intérêts"
                             ),
                             m("tspan[id='tspan9893'][x='485.79755'][y='292.51724']", {style: {"font-size": "14px", "font-style": "normal", "font-variant": "normal", "font-weight": "normal", "font-stretch": "normal", "text-align": "end", "line-height": "100%", "writing-mode": "lr-tb", "text-anchor": "end", "fill": "#000000", "fill-opacity": "1", "font-family": "Open Sans", "-inkscape-font-specification": "Open Sans"}}, 
-                                "${amo} mois: ${ad1} / mois"
+                                this.signData['amo'] + " mois: " + this.signData['ad1'] + " / mois"
                             )
                         ]
                     ),
@@ -210,7 +233,7 @@ SignTemplate.view = function () {
                     ),
                     m("text[id='text8592'][x='4.2512808'][xml:space='preserve'][y='284.85611']", {style: {"font-size": "60px", "font-style": "normal", "font-variant": "normal", "font-weight": "800", "font-stretch": "normal", "text-align": "start", "line-height": "125%", "letter-spacing": "0px", "word-spacing": "0px", "writing-mode": "lr", "text-anchor": "start", "fill": "#000000", "fill-opacity": "1", "stroke": "none", "font-family": "Open Sans", "-inkscape-font-specification": "Open Sans Ultra-Bold"}}, 
                         m("tspan[id='tspan8594'][x='4.2512808'][y='284.85611']", 
-                            "${c1}"
+                            this.signData['c1']
                         )
                     ),
                     m("rect[height='315'][id='rect8552'][width='495'][x='495.00003'][y='67.5']", {style: {"fill": "#ffffff", "fill-opacity": "1", "stroke": "none"}}),
@@ -231,13 +254,13 @@ SignTemplate.view = function () {
                                 "Prix ordinateur seul :"
                             ),
                             m("tspan[id='tspan8026'][x='741.91791'][y='301.60101']", 
-                                "${p1}"
+                                this.signData['p1']
                             )
                         ]
                     ),
                     m("text[id='text8600'][x='513.091'][xml:space='preserve'][y='365.24243']", {style: {"font-size": "20px", "font-style": "normal", "font-variant": "normal", "font-weight": "bold", "font-stretch": "normal", "text-align": "start", "line-height": "125%", "letter-spacing": "0px", "word-spacing": "0px", "writing-mode": "lr-tb", "text-anchor": "start", "fill": "#787878", "fill-opacity": "1", "stroke": "none", "font-family": "Open Sans", "-inkscape-font-specification": "Open Sans Bold"}}, 
                         m("tspan[id='tspan8602'][x='513.091'][y='365.24243']", 
-                            "${sk1} - ${ds1}"
+                            this.signData['sk1'] + " - " + this.signData['ds1']
                         )
                     ),
                     m("text[id='text8624'][x='6.1379995'][xml:space='preserve'][y='317.53671']", {style: {"font-style": "normal", "font-variant": "normal", "font-weight": "normal", "font-stretch": "normal", "font-size": "14px", "line-height": "110.00000238%", "font-family": "'Open Sans'", "-inkscape-font-specification": "'Open Sans'", "text-align": "start", "writing-mode": "lr-tb", "text-anchor": "start", "fill": "#000000", "fill-opacity": "1", "stroke": "none"}},
@@ -255,7 +278,7 @@ SignTemplate.view = function () {
                                 "- Clé USB 32 gb pour la récupération"
                             ),
                             m("tspan[id='tspan8649'][x='6.1379995'][y='379.13672']", {style: {"font-style": "normal", "font-variant": "normal", "font-weight": "normal", "font-stretch": "normal", "font-size": "14px", "line-height": "110.00000238%", "font-family": "'Open Sans'", "-inkscape-font-specification": "'Open Sans'", "text-align": "start", "writing-mode": "lr-tb", "text-anchor": "start", "fill": "#000000", "fill-opacity": "1"}}, 
-                                "- Un mois de service fiable Plus (${pf1})"
+                                "- Un mois de service fiable Plus (" + this.signData['pf1'] + ")"
                             )
                         ]
                     ),
@@ -399,13 +422,13 @@ SignTemplate.view = function () {
                                 "Prix taxes incluses:"
                             ),
                             m("tspan[id='tspan5752'][x='485.79755'][y='647.01721']", {style: {"font-size": "14px", "font-style": "normal", "font-variant": "normal", "font-weight": "normal", "font-stretch": "normal", "text-align": "end", "line-height": "100%", "writing-mode": "lr-tb", "text-anchor": "end", "fill": "#000000", "fill-opacity": "1", "font-family": "Open Sans", "-inkscape-font-specification": "Open Sans"}}, 
-                                "${tx2}"
+                                this.signData['tx2']
                             ),
                             m("tspan[id='tspan5754'][x='485.79755'][y='661.01721']", {style: {"font-size": "14px", "font-style": "normal", "font-variant": "normal", "font-weight": "normal", "font-stretch": "normal", "text-align": "end", "line-height": "100%", "writing-mode": "lr-tb", "text-anchor": "end", "fill": "#000000", "fill-opacity": "1", "font-family": "Open Sans", "-inkscape-font-specification": "Open Sans"}}, 
                                 "Financement sans intérêts"
                             ),
                             m("tspan[id='tspan5756'][x='485.79755'][y='675.01721']", {style: {"font-size": "14px", "font-style": "normal", "font-variant": "normal", "font-weight": "normal", "font-stretch": "normal", "text-align": "end", "line-height": "100%", "writing-mode": "lr-tb", "text-anchor": "end", "fill": "#000000", "fill-opacity": "1", "font-family": "Open Sans", "-inkscape-font-specification": "Open Sans"}}, 
-                                "${amo} mois: ${ad2} / mois"
+                                this.signData['amo'] + " mois: " + this.signData['ad2'] + " / mois"
                             )
                         ]
                     ),
@@ -431,7 +454,7 @@ SignTemplate.view = function () {
                     ),
                     m("text[id='text5770'][x='4.2512808'][xml:space='preserve'][y='667.35608']", {style: {"font-size": "60px", "font-style": "normal", "font-variant": "normal", "font-weight": "800", "font-stretch": "normal", "text-align": "start", "line-height": "125%", "letter-spacing": "0px", "word-spacing": "0px", "writing-mode": "lr", "text-anchor": "start", "fill": "#000000", "fill-opacity": "1", "stroke": "none", "font-family": "Open Sans", "-inkscape-font-specification": "Open Sans Ultra-Bold"}}, 
                         m("tspan[id='tspan5772'][x='4.2512808'][y='667.35608']", 
-                            "${c2}"
+                            this.signData['c2']
                         )
                     ),
                     m("g[id='g5774'][transform='translate(4.5057578e-5,382.5)']",
@@ -454,13 +477,13 @@ SignTemplate.view = function () {
                                         "Prix ordinateur seul :"
                                     ),
                                     m("tspan[id='tspan5790'][x='741.91785'][y='301.60101']", 
-                                        "${p2}"
+                                        this.signData['p2']
                                     )
                                 ]
                             ),
                             m("text[id='text5792'][x='513.09094'][xml:space='preserve'][y='365.24243']", {style: {"font-size": "20px", "font-style": "normal", "font-variant": "normal", "font-weight": "bold", "font-stretch": "normal", "text-align": "start", "line-height": "125%", "letter-spacing": "0px", "word-spacing": "0px", "writing-mode": "lr-tb", "text-anchor": "start", "fill": "#787878", "fill-opacity": "1", "stroke": "none", "font-family": "Open Sans", "-inkscape-font-specification": "Open Sans Bold"}}, 
                                 m("tspan[id='tspan5794'][x='513.09094'][y='365.24243']", 
-                                    "${sk2} - ${ds2}"
+                                    this.signData['sk2'] + " - " + this.signData['ds2']
                                 )
                             )
                         ]
@@ -480,7 +503,7 @@ SignTemplate.view = function () {
                                 "- Clé USB 32 gb pour la récupération"
                             ),
                             m("tspan[id='tspan8757'][x='6.1379995'][y='761.63672']", {style: {"font-style": "normal", "font-variant": "normal", "font-weight": "normal", "font-stretch": "normal", "font-size": "14px", "line-height": "110.00000238%", "font-family": "'Open Sans'", "-inkscape-font-specification": "'Open Sans'", "text-align": "start", "writing-mode": "lr-tb", "text-anchor": "start", "fill": "#000000", "fill-opacity": "1"}}, 
-                                "- Un mois de service fiable Plus (${pf2})"
+                                "- Un mois de service fiable Plus (" + this.signData['pf2'] + ")"
                             )
                         ]
                     )

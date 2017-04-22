@@ -1,6 +1,7 @@
 function numeric_only(e) {
     var unicode = e.charCode ? e.charCode : e.keyCode;
     var field = e.target;
+    e.redraw = false;
     if (unicode == 8 || unicode == 9 || (unicode >= 48 && unicode <= 57) || unicode == 46 || unicode == 44) {
         //Replace any commas with periods
         field.value = field.value.replace(/,/g, ".");
@@ -51,7 +52,7 @@ smGlobals.oninit = function (vnode) {
     }
     self.gValue = function(name) {
         return function (value) {
-            if (value) {
+            if (value !== undefined) {
                 self.globalValues[name] = value
             } else {
                 value = self.globalValues[name]
@@ -141,6 +142,21 @@ smMain = {}
 smMain.oninit = function () {
     var self = this
 
+    self.error = ''
+
+    self.localValues = initObject(['sku1', 'dsc1', 'prc1', 'sku2', 'dsc2', 'prc2'], '')
+
+    self.lValue = function(name) {
+        return function (value) {
+            if (value !== undefined) {
+                self.localValues[name] = value
+            } else {
+                value = self.localValues[name]
+            }
+            return value
+        }
+    }
+
     self.openModal = function () {
         m.mount(document.getElementById('smmodal'), ModalWindow(smGlobals, {
             done: function (gValues) {
@@ -160,58 +176,60 @@ smMain.oninit = function () {
         self.globalValues = null
         self.openModal()
     }
+
+    self.generateSign = function (e) {
+        e.preventDefault();
+        if (!self.globalValues) {
+            self.error = 'Vous DEVEZ remplir toutes les valeurs générales AVANT de générer une affiche!'
+        }
+    }
 }
 
 smMain.view = function () {
     var self = this
-    return m(".row", m(".col-sm-6.col-sm-offset-3", m(".account-wall[id='contents']", [
-        m(".btn-group.btn-top", m("button.btn.btn-sm.btn-beg[id='openglobals']", {onclick: self.openModal},
+    return m(".row", m(".col-sm-6.col-sm-offset-3", m(".account-wall#contents", [
+        m(".btn-group.btn-top", m("button.btn.btn-sm.btn-beg#openglobals", {onclick: self.openModal},
         [
             m("i.glyphicon.glyphicon-pencil"),
             m.trust("&nbsp;"),
             m.trust("&nbsp;"),
             "Modifier les valeurs générales"
         ])),
-        m("img.profile-img[alt=''][src='img/signmakerlogo.png']"),
-        m(".alert.alert-danger[id='formerror'][role='alert']", {style: {"display": "none"}}),
-        m("form.form-signmaker[action='signmaker/generate'][id='signmakerform'][method='post']", [
+        m("img.profile-img[src='img/signmakerlogo.png']"),
+        self.error.length > 0 ? m(".alert.alert-danger#formerror", self.error) : '',
+        m("form.form-signmaker#signmakerform", [
             m("label[for='sku1']", "UGS du premier ordinateur :"),
             m(".input-group.sign-group", [
                 m("span.input-group-addon", m("span.glyphicon.glyphicon-barcode")),
-                m("input.form-control[autofocus=''][id='sku1'][name='sku1'][onkeypress='return numeric_only(this,event);'][placeholder='UGS premier ordinateur'][required=''][type='text']"),
+                m("input.form-control#sku1", {onkeypress: numeric_only, onchange: m.withAttr('value', self.lValue('sku1')), value: self.lValue('sku1')(), placeholder: 'UGS premier ordinateur'}),
             ]),
-            m(".alert.alert-danger[id='skuerror1'][role='alert']", {style: {"display": "none"}}),
             m("label[for='dsc1']", "Description du premier ordinateur :"),
             m(".input-group.sign-group", [
                 m("span.input-group-addon", m("span.glyphicon.glyphicon-tag")),
-                m("input.form-control[id='dsc1'][name='dsc1'][placeholder='Description premier ordinateur'][required=''][type='text']")
+                m("input.form-control#dsc1", {onchange: m.withAttr('value', self.lValue('dsc1')), value: self.lValue('dsc1')(), placeholder: 'Description premier ordinateur'})
             ]),
             m("label[for='prc1']", "Prix du premier ordinateur :"),
             m(".input-group.sign-group", [
                 m("span.input-group-addon", m("span.glyphicon.glyphicon-usd")),
-                m("input.form-control[id='prc1'][name='prc1'][onkeypress='return numeric_only(this,event);'][placeholder='Prix premier ordinateur'][required=''][type='text']")
+                m("input.form-control#prc1", {onkeypress: numeric_only, onchange: m.withAttr('value', self.lValue('prc1')), value: self.lValue('prc1')(), placeholder: 'Prix premier ordinateur'})
             ]),
             m("hr"),
             m("label[for='sku2']", "UGS du deuxième ordinateur :"),
             m(".input-group.sign-group", [
                 m("span.input-group-addon", m("span.glyphicon.glyphicon-barcode")),
-                m("input.form-control[id='sku2'][name='sku2'][onkeypress='return numeric_only(this,event);'][placeholder='UGS deuxième ordinateur'][required=''][type='text']"),
+                m("input.form-control#sku2", {onkeypress: numeric_only, onchange: m.withAttr('value', self.lValue('sku2')), value: self.lValue('sku2')(), placeholder: 'UGS deuxième ordinateur'}),
             ]),
-            m(".alert.alert-danger[id='skuerror2'][role='alert']", {style: {"display": "none"}}),
             m("label[for='dsc2']", "Description du deuxième ordinateur :"),
             m(".input-group.sign-group", [
                 m("span.input-group-addon", m("span.glyphicon.glyphicon-tag")),
-                m("input.form-control[id='dsc2'][name='dsc2'][placeholder='Description deuxième ordinateur'][required=''][type='text']")
+                m("input.form-control#dsc2", {onchange: m.withAttr('value', self.lValue('dsc2')), value: self.lValue('dsc2')(), placeholder: 'Description deuxième ordinateur'})
             ]),
             m("label[for='prc2']", "Prix du deuxième ordinateur :"),
             m(".input-group.sign-group", [
                 m("span.input-group-addon", m("span.glyphicon.glyphicon-usd")),
-                m("input.form-control[id='prc2'][name='prc2'][onkeypress='return numeric_only(this,event);'][placeholder='Prix deuxième ordinateur'][required=''][type='text']")
+                m("input.form-control#prc2", {onkeypress: numeric_only, onchange: m.withAttr('value', self.lValue('prc2')), value: self.lValue('prc2')(), placeholder: 'Prix deuxième ordinateur'})
             ]),
-            m("button.btn.btn-lg.btn-beg.btn-block[data-loading-text='<img src=\'/assets/img/signload.gif\\'> Chargement...'][id='generatebtn'][type='submit']", [
-                m("span.glyphicon.glyphicon-ok"),
-                "  Générer"
-            ])
+            m("button.btn.btn-lg.btn-beg.btn-block#generatebtn", {onclick: self.generateSign}, [m("span.glyphicon.glyphicon-ok"), "  Générer"])
         ])
     ])))
 }
