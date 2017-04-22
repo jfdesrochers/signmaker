@@ -38,6 +38,9 @@ var smGlobals = {}
 smGlobals.oninit = function (vnode) {
     var self = this
 
+    self.error = ''
+    self.valid = false
+
     var savedGlobals = localStorage.getItem('globalValues')
     if (savedGlobals) {
         self.globalValues = JSON.parse(savedGlobals)
@@ -45,11 +48,12 @@ smGlobals.oninit = function (vnode) {
         self.globalValues = initObject(['p250', 'p350', 'p500', 'p1000', 'pMore', 'pUltra', 'pRestore', 'pTaxes', 'pEco', 'pAcd'], '')
     }
     
-    self.doCancel = function() {
+    self.doClose= function() {
         if (typeof vnode.attrs.done === 'function') {
-            vnode.attrs.done(null)
+            vnode.attrs.done(self.valid ? self.globalValues : null)
         }
     }
+
     self.gValue = function(name) {
         return function (value) {
             if (value !== undefined) {
@@ -60,6 +64,19 @@ smGlobals.oninit = function (vnode) {
             return value
         }
     }
+
+    self.saveAndClose = function () {
+        self.error = ''
+        self.valid = false
+        if (!Object.keys(self.globalValues).every(function (o) {
+            return self.globalValues[o].length > 0
+        })) {
+            self.error = 'Vous devez remplir TOUS les champs!'
+            return
+        }
+        self.valid = true
+        $(".modal").modal('hide')
+    }
 }
 
 smGlobals.view = function () {
@@ -67,7 +84,7 @@ smGlobals.view = function () {
     return m(".modal.fade.in#globaloptions", {
             oncreate: (vdom) => {
                 $(vdom.dom).modal('show')
-                $(vdom.dom).on('hidden.bs.modal', self.doCancel)
+                $(vdom.dom).on('hidden.bs.modal', self.doClose)
             }
         }, m(".modal-dialog", m(".modal-content", [
         m("form.form-signmaker.form-globals#globalsform", [
@@ -79,7 +96,7 @@ smGlobals.view = function () {
                 m("h4", "Entrez les valeurs générales"),
                 m("p", "Veuillez entrer dans les champs ci-dessous les différentes valeurs qui serviront dans les calculs."),
                 m("hr"),
-                m(".alert.alert-danger#globalserror", {style: {"display": "none"}}),
+                self.error.length > 0 ? m(".alert.alert-danger#globalserror", self.error) : '',
                 m(".row", [
                     m(".col-sm-6", [
                         m("h4", "Prix du Plan de Service Plus pour ordinateur portatif"),
@@ -107,7 +124,7 @@ smGlobals.view = function () {
                     m(".col-sm-6", [
                         m("h4", "Prix de la configuration et autres"),
                         m(".form-group", [
-                            m("label[for='pUltra']", "Configuration Ultra"),
+                            m("label[for='pUltra']", "Configuration du PC"),
                             m("input.form-control#pUltra[type='text']", {onkeypress: numeric_only, onchange: m.withAttr('value', self.gValue('pUltra')), value: self.gValue('pUltra')()})
                         ]),
                         m(".form-group", [
@@ -123,7 +140,7 @@ smGlobals.view = function () {
                             m("input.form-control#pEco[type='text']", {onkeypress: numeric_only, onchange: m.withAttr('value', self.gValue('pEco')), value: self.gValue('pEco')()})
                         ]),
                         m(".form-group", [
-                            m("label[for='pAcd']", "Facteur pour calcul d'Accord D (0.0xxxx)"),
+                            m("label[for='pAcd']", "Accord D: mois sans intérêts (6 ou 12)"),
                             m("input.form-control#pAcd[type='text']", {onkeypress: numeric_only, onchange: m.withAttr('value', self.gValue('pAcd')), value: self.gValue('pAcd')()})
                         ])
                     ])
@@ -132,7 +149,7 @@ smGlobals.view = function () {
         ]),
         m(".modal-footer", m(".btn-group", [
             m("button.btn.btn-danger[data-dismiss='modal']", "Annuler"),
-            m("button.btn.btn-primary#saveglobals", "Sauvegarder")
+            m("button.btn.btn-primary#saveglobals", {onclick: self.saveAndClose}, "Sauvegarder")
         ]))
     ])))
 }
@@ -144,7 +161,7 @@ smMain.oninit = function () {
 
     self.error = ''
 
-    self.localValues = initObject(['sku1', 'dsc1', 'prc1', 'sku2', 'dsc2', 'prc2'], '')
+    self.localValues = initObject(['sk1', 'ds1', 'prc1', 'sk2', 'ds2', 'prc2'], '')
 
     self.lValue = function(name) {
         return function (value) {
@@ -177,10 +194,70 @@ smMain.oninit = function () {
         self.openModal()
     }
 
+    self.whichEcp = function (p) {
+        if (p >= 1000) {
+            return parseFloat(self.globalValues['pMore'])
+        } else if (p >= 500) {
+            return parseFloat(self.globalValues['p1000'])
+        } else if (p >= 350) {
+            return parseFloat(self.globalValues['p500'])
+        } else if (p >= 250) {
+            return parseFloat(self.globalValues['p350'])
+        } else {
+            return parseFloat(self.globalValues['p250'])
+        }
+    }
+
+    self.toMoney = function (c) {
+        return c.toFixed(2).replace('.', ',') + ' $'
+    }
+
     self.generateSign = function (e) {
         e.preventDefault();
+        self.error = ''
         if (!self.globalValues) {
             self.error = 'Vous DEVEZ remplir toutes les valeurs générales AVANT de générer une affiche!'
+        }
+        if (!Object.keys(self.localValues).every(function (o) {
+            return self.localValues[o].length > 0
+        })) {
+            self.error = 'Vous devez remplir TOUS les champs!'
+            return
+        }
+        try {
+            var pr1 = parseFloat(self.localValues['prc1'])
+            var p1 = pr1 + parseFloat(self.globalValues['pEco'])
+            var pf1 = self.whichEcp(pr1, self.globalValues)
+            var c1 = p1 + pf1 + parseFloat(self.globalValues['pUltra']) + parseFloat(self.globalValues['pRestore'])
+            var tx1 = c1 + c1 * (parseFloat(self.globalValues['pTaxes']) / 100)
+            var ad1 = tx1 / parseFloat(self.globalValues['pAcd'])
+            var pr2 = parseFloat(self.localValues['prc2'])
+            var p2 = pr2 + parseFloat(self.globalValues['pEco'])
+            var pf2 = self.whichEcp(pr2, self.globalValues)
+            var c2 = p2 + pf2 + parseFloat(self.globalValues['pUltra']) + parseFloat(self.globalValues['pRestore'])
+            var tx2 = c2 + c2 * (parseFloat(self.globalValues['pTaxes']) / 100)
+            var ad2 = tx2 / parseFloat(self.globalValues['pAcd'])
+            var signData = {
+                'c1': self.toMoney(c1),
+                'p1': self.toMoney(p1),
+                'sk1': self.localValues['sk1'],
+                'ds1': self.localValues['ds1'],
+                'tx1': self.toMoney(tx1),
+                'ad1': self.toMoney(ad1),
+                'pf1': self.toMoney(pf1),
+                'c2': self.toMoney(c2),
+                'p2': self.toMoney(p2),
+                'sk2': self.localValues['sk2'],
+                'ds2': self.localValues['ds2'],
+                'tx2': self.toMoney(tx2),
+                'ad2': self.toMoney(ad2),
+                'pf2': self.toMoney(pf2),
+                'amo': self.globalValues['pAcd']
+            }
+            window.open('signtemplate.html#?d=' + encodeURIComponent(JSON.stringify(signData)), '_blank')
+        } catch (e) {
+            console.error(e)
+            self.error = 'Une erreur de calcul est survenue. Vérifiez que vous avez entré les bonnes données!'
         }
     }
 }
@@ -198,36 +275,36 @@ smMain.view = function () {
         m("img.profile-img[src='img/signmakerlogo.png']"),
         self.error.length > 0 ? m(".alert.alert-danger#formerror", self.error) : '',
         m("form.form-signmaker#signmakerform", [
-            m("label[for='sku1']", "UGS du premier ordinateur :"),
+            m("label[for='sk1']", "UGS du premier ordinateur :"),
             m(".input-group.sign-group", [
                 m("span.input-group-addon", m("span.glyphicon.glyphicon-barcode")),
-                m("input.form-control#sku1", {onkeypress: numeric_only, onchange: m.withAttr('value', self.lValue('sku1')), value: self.lValue('sku1')(), placeholder: 'UGS premier ordinateur'}),
+                m("input.form-control#sk1", {onkeypress: numeric_only, onchange: m.withAttr('value', self.lValue('sk1')), value: self.lValue('sk1')(), placeholder: 'UGS premier ordinateur'}),
             ]),
-            m("label[for='dsc1']", "Description du premier ordinateur :"),
+            m("label[for='ds1']", "Description du premier ordinateur :"),
             m(".input-group.sign-group", [
                 m("span.input-group-addon", m("span.glyphicon.glyphicon-tag")),
-                m("input.form-control#dsc1", {onchange: m.withAttr('value', self.lValue('dsc1')), value: self.lValue('dsc1')(), placeholder: 'Description premier ordinateur'})
+                m("input.form-control#ds1", {onchange: m.withAttr('value', self.lValue('ds1')), value: self.lValue('ds1')(), placeholder: 'Description premier ordinateur'})
             ]),
-            m("label[for='prc1']", "Prix du premier ordinateur :"),
+            m("label[for='prc1']", "Prix du premier ordinateur (avant écofrais) :"),
             m(".input-group.sign-group", [
                 m("span.input-group-addon", m("span.glyphicon.glyphicon-usd")),
-                m("input.form-control#prc1", {onkeypress: numeric_only, onchange: m.withAttr('value', self.lValue('prc1')), value: self.lValue('prc1')(), placeholder: 'Prix premier ordinateur'})
+                m("input.form-control#prc1", {onkeypress: numeric_only, onchange: m.withAttr('value', self.lValue('prc1')), value: self.lValue('prc1')(), placeholder: 'Prix premier ordinateur (avant écofrais)'})
             ]),
             m("hr"),
-            m("label[for='sku2']", "UGS du deuxième ordinateur :"),
+            m("label[for='sk2']", "UGS du deuxième ordinateur :"),
             m(".input-group.sign-group", [
                 m("span.input-group-addon", m("span.glyphicon.glyphicon-barcode")),
-                m("input.form-control#sku2", {onkeypress: numeric_only, onchange: m.withAttr('value', self.lValue('sku2')), value: self.lValue('sku2')(), placeholder: 'UGS deuxième ordinateur'}),
+                m("input.form-control#sk2", {onkeypress: numeric_only, onchange: m.withAttr('value', self.lValue('sk2')), value: self.lValue('sk2')(), placeholder: 'UGS deuxième ordinateur'}),
             ]),
-            m("label[for='dsc2']", "Description du deuxième ordinateur :"),
+            m("label[for='ds2']", "Description du deuxième ordinateur :"),
             m(".input-group.sign-group", [
                 m("span.input-group-addon", m("span.glyphicon.glyphicon-tag")),
-                m("input.form-control#dsc2", {onchange: m.withAttr('value', self.lValue('dsc2')), value: self.lValue('dsc2')(), placeholder: 'Description deuxième ordinateur'})
+                m("input.form-control#ds2", {onchange: m.withAttr('value', self.lValue('ds2')), value: self.lValue('ds2')(), placeholder: 'Description deuxième ordinateur'})
             ]),
-            m("label[for='prc2']", "Prix du deuxième ordinateur :"),
+            m("label[for='prc2']", "Prix du deuxième ordinateur (avant écofrais) :"),
             m(".input-group.sign-group", [
                 m("span.input-group-addon", m("span.glyphicon.glyphicon-usd")),
-                m("input.form-control#prc2", {onkeypress: numeric_only, onchange: m.withAttr('value', self.lValue('prc2')), value: self.lValue('prc2')(), placeholder: 'Prix deuxième ordinateur'})
+                m("input.form-control#prc2", {onkeypress: numeric_only, onchange: m.withAttr('value', self.lValue('prc2')), value: self.lValue('prc2')(), placeholder: 'Prix deuxième ordinateur (avant écofrais)'})
             ]),
             m("button.btn.btn-lg.btn-beg.btn-block#generatebtn", {onclick: self.generateSign}, [m("span.glyphicon.glyphicon-ok"), "  Générer"])
         ])
